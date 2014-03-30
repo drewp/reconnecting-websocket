@@ -123,9 +123,22 @@ function ReconnectingWebSocket(url, protocols) {
                     }
                     self.onclose(event);
                 }
-                setTimeout(function() {
+                var connectAfterWait = function () {
+                    var hidden = (document.hidden ||
+                                  document.mozHidden ||
+                                  document.msHidden ||
+                                  document.webkitHidden);
+                    if (hidden) {
+                        // This shouldn't have a fixed timeout at all;
+                        // it should wait for a 'visibilityChange'
+                        // event and consider connecting (if something
+                        // else hasn't connected us since then).
+                        setTimeout(connectAfterWait, 5000);
+                        return;
+                    }
                     connect(true);
-                }, self.reconnectInterval);
+                };
+                setTimeout(connectAfterWait, self.reconnectInterval);
             }
         };
         ws.onmessage = function(event) {
